@@ -1,0 +1,236 @@
+<?php
+/**
+ * @file
+ * Blocks simple cache.
+ */
+
+/**
+* Implements hook_permission().
+*/
+function cache_purger_permission() {
+  return array(
+  	'purge blocks cache' => array(
+  	  'title' => t('Purge Blocks Cache'),
+  		'description' => t('The purge button will appear next to each block.'),
+  	),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function cache_purger_menu() {
+  $items = array();
+
+  $items['admin/config/development/cachepurger'] = array(
+    'title' => 'Cache Purger',
+    'description' => 'Settings for Cache Purger',
+    'page callback' => 'drupal_get_form',
+  	'access callback' => 'user_access',
+    'access arguments' => array('administer site configuration'),
+    'page arguments' => array('cache_purger_settings_form'),
+  );
+  $items['admin/config/development/cachepurger/block'] = array(
+    'type' => MENU_CALLBACK,
+    'page callback' => '_block_simple_cache_block_purge',
+    'page arguments' => array(5, 6),
+  	'access callback' => TRUE,
+  );
+  
+  // contextual menus @TODO: remove contexual menus
+  $items['admin/structure/block/manage/%/%/purge/%'] = array(
+    'title' => 'Purge block cache',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_block_simple_cache_block_purge'),
+    'access arguments' => array('administer content'),
+  );
+  $items['admin/structure/block/manage/%/%/purge/cache/'] = array(
+    'title' => 'Purge block cache',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'context' => MENU_CONTEXT_INLINE,
+  );
+   
+  return $items;
+}
+
+/**
+ * Implementation of hook_init
+ */
+function cache_purger_init() {
+ global $theme_key;
+ 
+ // check user access
+ if (user_access('purge blocks cache')) {
+   // check if option is enabled
+   if (variable_get('cache_purger_purge_button', TRUE)) {
+     // populate all blocks for the current theme
+     module_load_include('inc', 'block', 'block.admin');
+     drupal_theme_initialize();
+     if (!isset($theme)) {
+       // If theme is not specifically set, rehash for the current theme.
+       $theme = $theme_key;
+     }
+     // get block list
+     $block_list = block_admin_display_prepare_blocks($theme);
+    
+     // process array of blocks
+     $block_ids = array();
+     $i = 0;
+     foreach ($block_list as $block) {
+       // build block id string
+       $bid = 'block-' . $block['module'] . '-' . $block['delta'];
+       $block_ids['module'][$i] = $block['module'];
+       $block_ids['delta'][$i] = $block['delta'];
+       $i++;
+     }
+    
+     // add js/css
+     drupal_add_js(array('cache_purger' => $block_ids), 'setting');
+     drupal_add_js(drupal_get_path('module', 'cache_purger') . '/js/cache_purger.js');
+     drupal_add_css(drupal_get_path('module', 'cache_purger') . '/cache_purger.css');
+   }
+ }
+}
+
+/**
+ * Module settings
+ */
+function cache_purger_settings_form($form_id, $form_state) {
+  $form['cache_purger_purge_options'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Cache Purge Settings'),
+    '#weight' => 1,
+  );
+  $form['cache_purger_purge_options']['cache_purger_purge_button'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Display purge button'),
+    '#description' => t('Purge button will appear on each block. When you click on it, it will purge the cache for that block.'),
+    '#default_value' => variable_get('cache_purger_purge_button', TRUE),
+  );
+  $form['cache_purger_purge_options']['cache_purger_purge_blocks'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Purge blocks cache automaticaly'),
+    '#description' => t('Flush blocks cache when changes are made on entities and nodequeues.'),
+    '#default_value' => variable_get('cache_purger_purge_blocks', 0),
+  );
+  
+  // Fetch all entity types
+  $entity_info = entity_get_info();
+  foreach(array_keys($entity_info) as $entity_name) {
+    $entities[$entity_name] = $entity_name;
+  }
+
+  // Display entities to choose to fine-tune setting
+  $form['cache_purger_purge_options']['cache_purger_purge_entities'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Limit Automatic cache invalidation to the following entities'),
+    '#options' => $entities,
+    '#default_value' => variable_get('cache_purger_purge_entities', $entities),
+    '#states' => array(
+      'invisible' => array(
+       'input[name="cache_purger_purge_blocks"]' => array('checked' => FALSE),
+      ),
+    ),
+  );
+
+  return system_settings_form($form);
+}
+
+/**
+ * Implements hook_form_alter
+ */
+function cache_purger_form_alter(&$form, &$form_state, $form_id) {
+  if (variable_get('cache_purger_purge_blocks', 0)) {
+    $purge_entities = variable_get('cache_purger_purge_entities', array());
+  
+    // add submit function to entities
+    if (isset($form['#entity_type'])) {
+      $entity_type = $form['#entity_type'];
+      if (in_array($entity_type, $purge_entities) && $purge_entities[$entity_type] != FALSE) {
+        // add purge to default submit button
+        if (isset($form['actions']['submit']['#submit'])) {
+          $form['actions']['submit']['#submit'][] = '_cache_purger_purge_form_submit';
+        }
+        if (isset($form['#submit'])) {
+          $form['#submit'][] = '_cache_purger_purge_form_submit';
+        }
+        // add purge to varnish purge button
+        if (isset($form['actions']['save_purge']['#submit'])) {
+          $form['actions']['save_purge']['#submit'][-100] = '_cache_purger_purge_form_submit';
+        }
+      }
+    }
+    // add submit function to nodequeue
+    if (isset($form['#form_id']) && substr($form['#form_id'], 0, 31) == 'nodequeue_arrange_subqueue_form') {
+      $entity_type = 'node';
+      if (in_array($entity_type, $purge_entities) && $purge_entities[$entity_type] != FALSE) {
+        $form['#entity_type'] = 'node';
+        // add purge to default submit button
+        if (isset($form['actions']['submit']['#submit'])) {
+          $form['actions']['submit']['#submit'][] = '_cache_purger_purge_form_submit';
+        }
+        if (isset($form['#submit'])) {
+          $form['#submit'][] = '_cache_purger_purge_form_submit';
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Submit handler for node_form submit if 'Save and Purge' was clicked
+ *
+ * Purges the current node and homepage from Varnish
+ */
+function _cache_purger_purge_form_submit(&$form, &$form_state) {
+  $entity_type = $form['#entity_type'];
+  _cache_purger_entity_purge($entity_type);
+}
+
+/**
+ * Views cache invalidation based on entity type
+ */
+function _cache_purger_entity_purge($type) {
+  if (variable_get('cache_purger_purge_blocks', 0)) {
+    $purge_entities = variable_get('cache_purger_purge_entities', array());
+    if (!is_null($type) && in_array($type, $purge_entities) && $purge_entities[$type] != FALSE) {
+      cache_clear_all('*', 'cache_block', TRUE);
+      cache_clear_all('*', 'cache_views', TRUE);
+      cache_clear_all('*', 'cache_views_data', TRUE);
+      drupal_set_message(t('Purged block caches.'));
+    }
+  }
+}
+
+/**
+ * _block_simple_cache_block_purge()
+ * Purge cache of a block
+ * @param $bid
+ */
+function _block_simple_cache_block_purge($module, $delta) {
+  // temporary fix until the contextual menu is removed @TODO: remove contexual menus
+  if (is_array($module)) {
+    $module = arg(4);
+  }
+  if (is_array($delta)) {
+    $delta = arg(5);
+  }
+  
+  if (user_access('purge blocks cache')) {
+    // purge blocks cache
+    $cid_blocks = $module . ':' . $delta;
+    cache_clear_all($cid_blocks, 'cache_block', TRUE);
+    
+    // purge views cache
+    $cid_views = str_replace('-block', ':block', $delta);
+    cache_clear_all($cid_views, 'cache_views', TRUE);
+    cache_clear_all($cid_views, 'cache_views_data', TRUE);
+     
+    $message = t('Block cache was purged: @cid', array('@cid' => $cid_blocks));
+  }
+  else {
+    $message = t('Access denied.');
+  }
+  echo json_encode(array('result' => $message));
+  exit;
+}
