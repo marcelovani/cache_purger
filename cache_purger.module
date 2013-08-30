@@ -72,32 +72,29 @@ function cache_purger_init() {
 
   // Check user access.
   if (user_access('purge blocks cache')) {
-    // Check if option is enabled.
-    if (variable_get('cache_purger_purge_button', TRUE)) {
-      // Populate all blocks for the current theme.
-      module_load_include('inc', 'block', 'block.admin');
-      drupal_theme_initialize();
-      if (!isset($theme)) {
-        // If theme is not specifically set, rehash for the current theme.
-        $theme = $theme_key;
-      }
-      // Get block list.
-      $block_list = block_admin_display_prepare_blocks($theme);
-
-      // Process array of blocks.
-      $block_ids = array();
-      $i = 0;
-      foreach ($block_list as $block) {
-        $block_ids['module'][$i] = $block['module'];
-        $block_ids['delta'][$i] = $block['delta'];
-        $i++;
-      }
-
-      // Add js/css.
-      drupal_add_js(array('cache_purger' => $block_ids), 'setting');
-      drupal_add_js(drupal_get_path('module', 'cache_purger') . '/js/cache_purger.js');
-      drupal_add_css(drupal_get_path('module', 'cache_purger') . '/cache_purger.css');
+    // Populate all blocks for the current theme.
+    module_load_include('inc', 'block', 'block.admin');
+    drupal_theme_initialize();
+    if (!isset($theme)) {
+      // If theme is not specifically set, rehash for the current theme.
+      $theme = $theme_key;
     }
+    // Get block list.
+    $block_list = block_admin_display_prepare_blocks($theme);
+
+    // Process array of blocks.
+    $block_ids = array();
+    $i = 0;
+    foreach ($block_list as $block) {
+      $block_ids['module'][$i] = $block['module'];
+      $block_ids['delta'][$i] = $block['delta'];
+      $i++;
+    }
+
+    // Add js/css.
+    drupal_add_js(array('cache_purger' => $block_ids), 'setting');
+    drupal_add_js(drupal_get_path('module', 'cache_purger') . '/js/cache_purger.js');
+    drupal_add_css(drupal_get_path('module', 'cache_purger') . '/cache_purger.css');
   }
 }
 
@@ -110,29 +107,23 @@ function cache_purger_settings_form($form_id, $form_state) {
     '#title' => t('Cache Purge Settings'),
     '#weight' => 1,
   );
-  $form['cache_purger_purge_options']['cache_purger_purge_button'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Display purge button'),
-    '#description' => t('Purge button will appear on each block. When you click on it, it will purge the cache for that block.'),
-    '#default_value' => variable_get('cache_purger_purge_button', TRUE),
-  );
   $form['cache_purger_purge_options']['cache_purger_purge_blocks'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Purge blocks cache automaticaly'),
-    '#description' => t('Flush blocks cache when changes are made on entities and nodequeues.'),
+    '#title' => t('Purge blocks cache automaticaly when an update happens'),
+    '#description' => t('Flush blocks cache when changes are made on entities and nodequeues, etc.'),
     '#default_value' => variable_get('cache_purger_purge_blocks', 0),
   );
 
   // Fetch all entity types.
   $entity_info = entity_get_info();
   foreach(array_keys($entity_info) as $entity_name) {
-    $entities[$entity_name] = $entity_name;
+    $entities[$entity_name] = $entity_info[$entity_name]['label'];
   }
 
   // Display entities to choose to fine-tune setting.
   $form['cache_purger_purge_options']['cache_purger_purge_entities'] = array(
     '#type' => 'checkboxes',
-    '#title' => t('Limit Automatic cache invalidation to the following entities'),
+    '#title' => t('Enable automatic cache invalidation to the following:'),
     '#options' => $entities,
     '#default_value' => variable_get('cache_purger_purge_entities', $entities),
     '#states' => array(

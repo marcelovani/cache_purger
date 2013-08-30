@@ -28,11 +28,10 @@ Configuration
 Visit /admin/config/development/cachepurger
 or via menus: Configuration > Development > Cache Purger
 
-If you tick 'Display purge button' The purge button will appear on each block. 
-When you click on it, it will purge the cache for that block.
-
 If you tick 'Purge blocks cache automatically' Cache Purger will lush blocks cache 
-when changes are made on entities and nodequeues.
+when changes are made on entities and nodequeues, etc
+
+Visit the permissions page and set them accordingly
 
 Flushing blocks
 ===============
