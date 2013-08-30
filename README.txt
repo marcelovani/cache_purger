@@ -31,7 +31,7 @@ or via menus: Configuration > Development > Cache Purger
 If you tick 'Display purge button' The purge button will appear on each block. 
 When you click on it, it will purge the cache for that block.
 
-If you tick 'Purge blocks cache automaticaly' Cache Purger will lush blocks cache 
+If you tick 'Purge blocks cache automatically' Cache Purger will lush blocks cache 
 when changes are made on entities and nodequeues.
 
 Flushing blocks
