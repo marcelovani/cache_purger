@@ -34,7 +34,8 @@ function cache_purge_block(module, delta) {
   if(cssPrefix != false) {
     var purge_btn = document.getElementById('cache-purge-btn-' + module + '-' + delta), degrees = 0, speed = 5;
     var spinner = setInterval(function() {
-      degrees += speed; // Degree adjustment each interval.
+      // Degree adjustment each interval.
+      degrees += speed;
       purge_btn.setAttribute("style","-" + cssPrefix + "-transform:rotate(" + degrees + "deg)");
     },5);
   }

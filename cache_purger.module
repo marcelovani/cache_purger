@@ -59,7 +59,7 @@ function cache_purger_menu() {
 function cache_purger_init() {
   global $theme_key;
 
- // check user access
+  // Check user access.
   if (user_access('purge blocks cache')) {
     // Check if option is enabled.
     if (variable_get('cache_purger_purge_button', TRUE)) {
@@ -126,7 +126,7 @@ function cache_purger_settings_form($form_id, $form_state) {
     '#default_value' => variable_get('cache_purger_purge_entities', $entities),
     '#states' => array(
       'invisible' => array(
-       'input[name="cache_purger_purge_blocks"]' => array('checked' => FALSE),
+        'input[name="cache_purger_purge_blocks"]' => array('checked' => FALSE),
       ),
     ),
   );
@@ -200,13 +200,13 @@ function _cache_purger_entity_purge($type) {
 }
 
 /**
- * _block_simple_cache_block_purge()
- * Purge cache of a block
- * @param $module
- * @param $delta
+ * Purge cache of a block.
+ * @param string $module
+ * @param string $delta
  */
 function _block_simple_cache_block_purge($module, $delta) {
-  // Temporary fix until the contextual menu is removed @TODO: remove contexual menus.
+  // Temporary fix until the contextual menu is removed 
+  // @TODO: remove contexual menus.
   if (is_array($module)) {
     $module = arg(4);
   }
