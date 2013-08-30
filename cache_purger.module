@@ -54,6 +54,17 @@ function cache_purger_menu() {
 }
 
 /**
+ * Implements hook_help().
+ */
+function cache_purger_help($path, $arg) {
+  switch ($path) {
+    case 'admin/config/development/cachepurger':
+      return t('Purges blocks/views caches when a node gets updated.');
+  }
+}
+
+
+/**
  * Implements of hook_init().
  */
 function cache_purger_init() {
