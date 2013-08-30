@@ -22,14 +22,6 @@ function cache_purger_permission() {
 function cache_purger_menu() {
   $items = array();
 
-  $items['admin/config/development/cachepurger'] = array(
-    'title' => 'Cache Purger',
-    'description' => 'Settings for Cache Purger',
-    'page callback' => 'drupal_get_form',
-    'access callback' => 'user_access',
-    'access arguments' => array('administer site configuration'),
-    'page arguments' => array('cache_purger_settings_form'),
-  );
   $items['admin/config/development/cachepurger/block'] = array(
     'type' => MENU_CALLBACK,
     'page callback' => '_cache_purger_cache_block_purge',
@@ -101,7 +93,7 @@ function cache_purger_init() {
 /**
  * Module settings.
  */
-function cache_purger_settings_form($form_id, $form_state) {
+function cache_purger_form_system_performance_settings_alter(&$form, &$form_state, $form_id) {
   $form['cache_purger_purge_options'] = array(
     '#type' => 'fieldset',
     '#title' => t('Cache Purge Settings'),

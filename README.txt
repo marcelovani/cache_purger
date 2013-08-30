@@ -25,13 +25,13 @@ Visit Configuration > Development > Cache Purger
 
 Configuration
 =============
-Visit /admin/config/development/cachepurger
-or via menus: Configuration > Development > Cache Purger
+Visit /admin/config/development/performance
+or via menus: Configuration > Development > Performance
 
-If you tick 'Purge blocks cache automatically' Cache Purger will lush blocks cache 
-when changes are made on entities and nodequeues, etc
+If you tick 'Purge blocks cache automaticaly when an update happens' Cache Purger will 
+flush blocks cache when changes are made on entities and nodequeues, etc
 
-Visit the permissions page and set them accordingly
+Visit the permissions page and set them accordingly /admin/people/permissions#module-cache_purger
 
 Flushing blocks
 ===============
