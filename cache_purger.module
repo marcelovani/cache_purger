@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * Blocks simple cache.
+ * Cache Purger.
  */
 
 /**
@@ -32,7 +32,7 @@ function cache_purger_menu() {
   );
   $items['admin/config/development/cachepurger/block'] = array(
     'type' => MENU_CALLBACK,
-    'page callback' => '_block_simple_cache_block_purge',
+    'page callback' => '_cache_purger_cache_block_purge',
     'page arguments' => array(5, 6),
     'access callback' => TRUE,
   );
@@ -41,7 +41,7 @@ function cache_purger_menu() {
   $items['admin/structure/block/manage/%/%/purge/%'] = array(
     'title' => 'Purge block cache',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('_block_simple_cache_block_purge'),
+    'page arguments' => array('_cache_purger_cache_block_purge'),
     'access arguments' => array('administer content'),
   );
   $items['admin/structure/block/manage/%/%/purge/cache/'] = array(
@@ -216,7 +216,7 @@ function _cache_purger_entity_purge($type) {
  * @param string $module
  * @param string $delta
  */
-function _block_simple_cache_block_purge($module, $delta) {
+function _cache_purger_cache_block_purge($module, $delta) {
   // Temporary fix until the contextual menu is removed 
   // @TODO: remove contexual menus.
   if (is_array($module)) {
