@@ -15,16 +15,26 @@ Drupal.behaviors.blockPurge = {
 
 function cache_purge_block(module, delta) {
   var cssPrefix = false;
-  if (jQuery.browser.webkit) cssPrefix = "webkit";
-  if (jQuery.browser.safari) cssPrefix = "webkit";
-  if (jQuery.browser.mozilla) cssPrefix = "moz";
-  if (jQuery.browser.opera) cssPrefix = "o";
-  if (jQuery.browser.msie) cssPrefix = "ms";
+  if (jQuery.browser.webkit) {
+    cssPrefix = "webkit";
+  }
+  if (jQuery.browser.safari) {
+    cssPrefix = "webkit";
+  }
+  if (jQuery.browser.mozilla) {
+    cssPrefix = "moz";
+  }
+  if (jQuery.browser.opera) {
+    cssPrefix = "o";
+  }
+  if (jQuery.browser.msie) {
+    cssPrefix = "ms";
+  }
 
   if(cssPrefix != false) {
     var purge_btn = document.getElementById('cache-purge-btn-' + module + '-' + delta), degrees = 0, speed = 5;
     var spinner = setInterval(function() {
-      degrees += speed; // degree adjustment each interval
+      degrees += speed; // Degree adjustment each interval.
       purge_btn.setAttribute("style","-" + cssPrefix + "-transform:rotate(" + degrees + "deg)");
     },5);
   }

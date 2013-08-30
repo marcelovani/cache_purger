@@ -2,4 +2,3 @@ name = Cache Purger
 description = "Purges blocks/views caches when a node gets updated."
 core = 7.x
 package = Caching
-files[] = cache_purger.module
