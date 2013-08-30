@@ -9,10 +9,10 @@
 */
 function cache_purger_permission() {
   return array(
-  	'purge blocks cache' => array(
-  	  'title' => t('Purge Blocks Cache'),
-  		'description' => t('The purge button will appear next to each block.'),
-  	),
+    'purge blocks cache' => array(
+      'title' => t('Purge Blocks Cache'),
+      'description' => t('The purge button will appear next to each block.'),
+    ),
   );
 }
 
@@ -26,7 +26,7 @@ function cache_purger_menu() {
     'title' => 'Cache Purger',
     'description' => 'Settings for Cache Purger',
     'page callback' => 'drupal_get_form',
-  	'access callback' => 'user_access',
+    'access callback' => 'user_access',
     'access arguments' => array('administer site configuration'),
     'page arguments' => array('cache_purger_settings_form'),
   );
@@ -34,9 +34,9 @@ function cache_purger_menu() {
     'type' => MENU_CALLBACK,
     'page callback' => '_block_simple_cache_block_purge',
     'page arguments' => array(5, 6),
-  	'access callback' => TRUE,
+    'access callback' => TRUE,
   );
-  
+
   // contextual menus @TODO: remove contexual menus
   $items['admin/structure/block/manage/%/%/purge/%'] = array(
     'title' => 'Purge block cache',
@@ -49,7 +49,7 @@ function cache_purger_menu() {
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'context' => MENU_CONTEXT_INLINE,
   );
-   
+
   return $items;
 }
 
@@ -58,7 +58,7 @@ function cache_purger_menu() {
  */
 function cache_purger_init() {
  global $theme_key;
- 
+
  // check user access
  if (user_access('purge blocks cache')) {
    // check if option is enabled
@@ -72,7 +72,7 @@ function cache_purger_init() {
      }
      // get block list
      $block_list = block_admin_display_prepare_blocks($theme);
-    
+
      // process array of blocks
      $block_ids = array();
      $i = 0;
@@ -83,7 +83,7 @@ function cache_purger_init() {
        $block_ids['delta'][$i] = $block['delta'];
        $i++;
      }
-    
+
      // add js/css
      drupal_add_js(array('cache_purger' => $block_ids), 'setting');
      drupal_add_js(drupal_get_path('module', 'cache_purger') . '/js/cache_purger.js');
@@ -113,7 +113,7 @@ function cache_purger_settings_form($form_id, $form_state) {
     '#description' => t('Flush blocks cache when changes are made on entities and nodequeues.'),
     '#default_value' => variable_get('cache_purger_purge_blocks', 0),
   );
-  
+
   // Fetch all entity types
   $entity_info = entity_get_info();
   foreach(array_keys($entity_info) as $entity_name) {
@@ -142,7 +142,7 @@ function cache_purger_settings_form($form_id, $form_state) {
 function cache_purger_form_alter(&$form, &$form_state, $form_id) {
   if (variable_get('cache_purger_purge_blocks', 0)) {
     $purge_entities = variable_get('cache_purger_purge_entities', array());
-  
+
     // add submit function to entities
     if (isset($form['#entity_type'])) {
       $entity_type = $form['#entity_type'];
@@ -215,17 +215,17 @@ function _block_simple_cache_block_purge($module, $delta) {
   if (is_array($delta)) {
     $delta = arg(5);
   }
-  
+
   if (user_access('purge blocks cache')) {
     // purge blocks cache
     $cid_blocks = $module . ':' . $delta;
     cache_clear_all($cid_blocks, 'cache_block', TRUE);
-    
+
     // purge views cache
     $cid_views = str_replace('-block', ':block', $delta);
     cache_clear_all($cid_views, 'cache_views', TRUE);
     cache_clear_all($cid_views, 'cache_views_data', TRUE);
-     
+
     $message = t('Block cache was purged: @cid', array('@cid' => $cid_blocks));
   }
   else {
