@@ -176,10 +176,10 @@ function cache_purger_form_alter(&$form, &$form_state, $form_id) {
 }
 
 /**
- * Submit handler for node_form submit if 'Save and Purge' was clicked.
  * Purges the current node and homepage from Varnish.
  */
 function _cache_purger_purge_form_submit(&$form, &$form_state) {
+  // Submit handler for node_form submit if 'Save and Purge' was clicked.
   $entity_type = $form['#entity_type'];
   _cache_purger_entity_purge($entity_type);
 }
@@ -201,6 +201,7 @@ function _cache_purger_entity_purge($type) {
 
 /**
  * Purge cache of a block.
+ * 
  * @param string $module
  * @param string $delta
  */
