@@ -186,8 +186,10 @@ function _cache_purger_entity_purge($type) {
     $purge_entities = variable_get('cache_purger_purge_entities', array());
     if (!is_null($type) && in_array($type, $purge_entities) && $purge_entities[$type] != FALSE) {
       cache_clear_all('*', 'cache_block', TRUE);
-      cache_clear_all('*', 'cache_views', TRUE);
-      cache_clear_all('*', 'cache_views_data', TRUE);
+      if (module_exists('views')) {
+        cache_clear_all('*', 'cache_views', TRUE);
+        cache_clear_all('*', 'cache_views_data', TRUE);
+      }
       drupal_set_message(t('Purged block caches.'));
     }
   }
@@ -215,9 +217,11 @@ function _cache_purger_cache_block_purge($module, $delta) {
     cache_clear_all($cid_blocks, 'cache_block', TRUE);
 
     // Purge views cache.
-    $cid_views = str_replace('-block', ':block', $delta);
-    cache_clear_all($cid_views, 'cache_views', TRUE);
-    cache_clear_all($cid_views, 'cache_views_data', TRUE);
+    if (module_exists('views')) {
+      $cid_views = str_replace('-block', ':block', $delta);
+      cache_clear_all($cid_views, 'cache_views', TRUE);
+      cache_clear_all($cid_views, 'cache_views_data', TRUE);
+    }
 
     $message = t('Block cache was purged: @cid', array('@cid' => $cid_blocks));
   }
