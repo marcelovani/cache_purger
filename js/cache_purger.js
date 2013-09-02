@@ -5,7 +5,7 @@ Drupal.behaviors.blockPurge = {
   jQuery.each(block_ids.module, function (i, item) {
     var module = block_ids.module[i];
     var delta = block_ids.delta[i];
-    var purge_btn = '<div class="cache-purge-btn" title="Purge Cache: ' + module + '-' + delta + '" id="cache-purge-btn-' + module + '-' + delta +	'" onclick="cache_purge_block(\'' + module + '\', \'' + delta + '\');"></div>';
+    var purge_btn = '<div class="cache-purge-btn" title="Purge Cache: ' + module + '-' + delta + '" id="cache-purge-btn-' + module + '-' + delta +	'" onclick="cache_purge_block(\'' + module + '\', \'' + delta + '\', \'' + Drupal.settings.cache_purger_debug + '\');"></div>';
     jQuery('#block-' + module + '-' + delta + '').append(purge_btn);
    });
   }
@@ -13,7 +13,7 @@ Drupal.behaviors.blockPurge = {
 
 })(jQuery);
 
-function cache_purge_block(module, delta) {
+function cache_purge_block(module, delta, debug) {
   var cssPrefix = false;
   if (jQuery.browser.webkit) {
     cssPrefix = "webkit";
@@ -41,7 +41,9 @@ function cache_purge_block(module, delta) {
   }
   jQuery.getJSON("/admin/config/development/cachepurger/block/" + module + "/" + delta, {}, function(data) {
     clearInterval(spinner);
-    alert(data.result);
+    if (debug != 0) {
+      alert(data.result);
+    }
     jQuery('#cache-purge-btn-' + module + '-' + delta).fadeOut('slow');
   });
 }

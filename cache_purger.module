@@ -84,7 +84,9 @@ function cache_purger_init() {
     }
 
     // Add js/css.
-    drupal_add_js(array('cache_purger' => $block_ids), 'setting');
+    drupal_add_js(array('cache_purger' => $block_ids,
+                        'cache_purger_debug' => variable_get('cache_purger_debug_mode', 0)
+                        ), 'setting');
     drupal_add_js(drupal_get_path('module', 'cache_purger') . '/js/cache_purger.js');
     drupal_add_css(drupal_get_path('module', 'cache_purger') . '/cache_purger.css');
   }
@@ -98,6 +100,12 @@ function cache_purger_form_system_performance_settings_alter(&$form, &$form_stat
     '#type' => 'fieldset',
     '#title' => t('Cache Purge Settings'),
     '#weight' => 1,
+  );
+  $form['cache_purger_purge_options']['cache_purger_debug_mode'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Debug mode'),
+    '#description' => t('A pop up containing the CID of the block will be displayed when the purge button is clicked.'),
+    '#default_value' => variable_get('cache_purger_debug_mode', 0),
   );
   $form['cache_purger_purge_options']['cache_purger_purge_blocks'] = array(
     '#type' => 'checkbox',
