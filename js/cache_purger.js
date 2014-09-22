@@ -1,12 +1,16 @@
 (function ($) {
 Drupal.behaviors.blockPurge = {
   attach: function (context) {
-  var block_ids = Drupal.settings.cache_purger;
-  jQuery.each(block_ids.module, function (i, item) {
-    var module = block_ids.module[i];
-    var delta = block_ids.delta[i];
-    var purge_btn = '<div class="cache-purge-btn" title="Purge Cache: ' + module + '-' + delta + '" id="cache-purge-btn-' + module + '-' + delta +	'" onclick="cache_purge_block(\'' + module + '\', \'' + delta + '\', \'' + Drupal.settings.cache_purger_debug + '\');"></div>';
-    jQuery('#block-' + module + '-' + delta + '').append(purge_btn);
+  jQuery.each(_cp, function (i, item) {
+    var module = item.module;
+    var delta = item.delta;
+    var block_id = module + '-' + delta;
+    var purge_btn = '<div class="cache-purge-btn" title="Purge Cache: ' + block_id +
+    				'" id="cache-purge-btn-' + block_id +
+    				'" onclick="cache_purge_block(\'' + module + '\', \'' + delta + '\', \'' + _cp_d + '\');"></div>';
+    var id = '#block-' + block_id;
+    var cl = '.block-' + block_id;
+    jQuery(id + ', ' + cl).append(purge_btn);
    });
   }
 };
@@ -15,6 +19,8 @@ Drupal.behaviors.blockPurge = {
 
 function cache_purge_block(module, delta, debug) {
   var cssPrefix = false;
+  var block_id = module + '-' + delta;
+      
   if (jQuery.browser.webkit) {
     cssPrefix = "webkit";
   }
@@ -32,9 +38,8 @@ function cache_purge_block(module, delta, debug) {
   }
 
   if(cssPrefix != false) {
-    var purge_btn = document.getElementById('cache-purge-btn-' + module + '-' + delta), degrees = 0, speed = 5;
+    var purge_btn = document.getElementById('cache-purge-btn-' + block_id), degrees = 0, speed = 5;
     var spinner = setInterval(function() {
-      // Degree adjustment each interval.
       degrees += speed;
       purge_btn.setAttribute("style","-" + cssPrefix + "-transform:rotate(" + degrees + "deg)");
     },5);
@@ -44,6 +49,6 @@ function cache_purge_block(module, delta, debug) {
     if (debug != 0) {
       alert(data.result);
     }
-    jQuery('#cache-purge-btn-' + module + '-' + delta).fadeOut('slow');
+    jQuery('#cache-purge-btn-' + block_id).fadeOut('slow');
   });
 }
