@@ -49,43 +49,6 @@ function cache_purger_help($path, $arg) {
   }
 }
 
-
-/**
- * Implements of hook_init().
- */
-function cache_purger_init() {
-  global $theme_key;
-
-  // Check user access.
-  if (user_access('purge blocks cache')) {
-    // Populate all blocks for the current theme.
-    module_load_include('inc', 'block', 'block.admin');
-    drupal_theme_initialize();
-    if (!isset($theme)) {
-      // If theme is not specifically set, rehash for the current theme.
-      $theme = $theme_key;
-    }
-    // Get block list.
-    $block_list = block_admin_display_prepare_blocks($theme);
-
-    // Process array of blocks.
-    $block_ids = array();
-    $i = 0;
-    foreach ($block_list as $block) {
-      $block_ids['module'][$i] = $block['module'];
-      $block_ids['delta'][$i] = $block['delta'];
-      $i++;
-    }
-
-    // Add js/css.
-    drupal_add_js(array('cache_purger' => $block_ids,
-                        'cache_purger_debug' => variable_get('cache_purger_debug_mode', 0)
-                        ), 'setting');
-    drupal_add_js(drupal_get_path('module', 'cache_purger') . '/js/cache_purger.js');
-    drupal_add_css(drupal_get_path('module', 'cache_purger') . '/cache_purger.css');
-  }
-}
-
 /**
  * Module settings.
  */
