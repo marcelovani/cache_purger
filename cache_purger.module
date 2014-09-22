@@ -226,38 +226,46 @@ function cache_purger_cache_get($key, $bin = 'cache_block') {
 }
 
 /**
- * Purge cache of a block.
- * 
+ * Purges caches.
+ *
  * @param string $module
  * @param string $delta
  */
-function _cache_purger_cache_block_purge($module, $delta) {
-  // Temporary fix until the contextual menu is removed 
-  // @TODO: remove contexual menus.
-  if (is_array($module)) {
-    $module = arg(4);
-  }
-  if (is_array($delta)) {
-    $delta = arg(5);
-  }
-
+function cache_purger_purge($module, $delta) {
   if (user_access('purge blocks cache')) {
-    // Purge blocks cache.
-    $cid_blocks = $module . ':' . $delta;
-    cache_clear_all($cid_blocks, 'cache_block', TRUE);
-
-    // Purge views cache.
+    // List of items to clear.
+    $cache_tables = array();
+    if (module_exists('block')) {
+      $cache_tables[] = 'cache_block';
+    }
     if (module_exists('views')) {
-      $cid_views = str_replace('-block', ':block', $delta);
-      cache_clear_all($cid_views, 'cache_views', TRUE);
-      cache_clear_all($cid_views, 'cache_views_data', TRUE);
+      $cache_tables[] = 'cache_views_data';
+    }
+    if (module_exists('menu')) {
+      $cache_tables[] = 'cache_menu';
     }
 
-    $message = t('Block cache was purged: @cid', array('@cid' => $cid_blocks));
+    foreach ($cache_tables as $key => $bin) {
+      switch ($bin) {
+        case 'cache_block':
+          $cid = $module . ':' . $delta;
+          break;
+        case 'cache_views_data':
+          $cid = $module . ':' . str_replace('-', ':', $delta);
+          break;
+        case 'cache_menu':
+          $cid = 'links:' . $delta;
+          break;
+      }
+
+      // Clear cache.
+      cache_clear_all($cid, $bin, TRUE);
+    }
+    $message = t('Purged: @module-@delta', array('@module' => $module, '@delta' => $delta));
   }
   else {
     $message = t('Access denied.');
   }
   echo json_encode(array('result' => $message));
-  exit;
+  drupal_exit();
 }
