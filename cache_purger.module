@@ -207,6 +207,24 @@ function _cache_purger_entity_purge($type) {
   }
 }
 
+/*
+ * Helper to get the cache data and print it.
+ */
+function cache_purger_cache_get($key, $bin = 'cache_block') {
+  if (user_access('purge blocks cache')) {
+    $cache = cache_get($key, $bin);
+    echo $key . ' on ' . $bin . PHP_EOL;
+    if (isset($cache->data)) {
+      echo '<pre>';
+      print_r($cache->data);
+    }
+    else {
+      echo t('Not found');
+    }
+    echo '<br>';
+  }
+}
+
 /**
  * Purge cache of a block.
  * 
