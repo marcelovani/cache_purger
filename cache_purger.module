@@ -45,7 +45,34 @@ function cache_purger_menu() {
 function cache_purger_help($path, $arg) {
   switch ($path) {
     case 'admin/config/development/cachepurger':
+      //@TODO put more content here.
       return t('Purges blocks/views caches when a node gets updated.');
+  }
+}
+
+/**
+ * Implements hook_preprocess_block().
+ */
+function cache_purger_preprocess_block(&$variables) {
+  if (user_access('purge blocks cache')) {
+    $block = $variables['elements']['#block'];
+    $module = '';
+    $delta = '';
+
+    // Drupal core stores blocks as arrays.
+    if (is_array($block)) {
+      $module = $block['module'];
+      $delta = $block['delta'];
+    }
+    elseif (is_object($block)) {
+      // Context module stores blocks as objects.
+      $module = $block->module;
+      $delta = $block->delta;
+    }
+
+    // Add blocks information to be used with the purge button.
+    $js = '_cp.push({module:"' . $module . '", delta:"' . $delta . '"});';
+    $variables['elements']['#attached']['js'][] = drupal_add_js($js,  array('type' => 'inline', 'scope' => 'footer'));
   }
 }
 
