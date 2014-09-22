@@ -269,3 +269,23 @@ function cache_purger_purge($module, $delta) {
   echo json_encode(array('result' => $message));
   drupal_exit();
 }
+
+/*
+ * Implements hook_install();
+ */
+function cache_purger_install() {
+  db_update('system')
+    ->fields(array('weight' => 5))
+    ->condition('name', 'cache_purger', '=')
+    ->execute();
+}
+
+/*
+ * Implements hook_update().
+ */
+function cache_purger_update_7001() {
+  db_update('system')
+    ->fields(array('weight' => 5))
+    ->condition('name', 'cache_purger', '=')
+    ->execute();
+}
