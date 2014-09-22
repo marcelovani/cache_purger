@@ -76,6 +76,21 @@ function cache_purger_preprocess_block(&$variables) {
   }
 }
 
+/*
+ * Implements hook_page_alter().
+ */
+function cache_purger_page_alter(&$page) {
+  if (user_access('purge blocks cache')) {
+    // Create the _cp object in the header.
+    $js = 'var _cp = _cp || []; var _cp_d = ' . variable_get('cache_purger_debug_mode', 0) . ';';
+
+    // Add necessary js and css.
+    drupal_add_js($js,  array('type' => 'inline', 'scope' => 'header'));
+    drupal_add_js(drupal_get_path('module', 'cache_purger') . '/js/cache_purger.js');
+    drupal_add_css(drupal_get_path('module', 'cache_purger') . '/cache_purger.css');
+  }
+}
+
 /**
  * Module settings.
  */
