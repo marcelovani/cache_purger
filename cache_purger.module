@@ -113,7 +113,7 @@ function cache_purger_form_system_performance_settings_alter(&$form, &$form_stat
     '#default_value' => variable_get('cache_purger_purge_blocks', 0),
   );
 
-  // Fetch all entity types.
+  // Get list of entity types.
   $entity_info = entity_get_info();
   foreach(array_keys($entity_info) as $entity_name) {
     $entities[$entity_name] = $entity_info[$entity_name]['label'];
@@ -186,13 +186,18 @@ function _cache_purger_purge_form_submit(&$form, &$form_state) {
 }
 
 /**
- * Views cache invalidation based on entity type.
+ * Blocks/Views cache invalidation based on entity type.
  */
 function _cache_purger_entity_purge($type) {
   if (variable_get('cache_purger_purge_blocks', 0)) {
     $purge_entities = variable_get('cache_purger_purge_entities', array());
     if (!is_null($type) && in_array($type, $purge_entities) && $purge_entities[$type] != FALSE) {
-      cache_clear_all('*', 'cache_block', TRUE);
+      // Clear cache block.
+      if (module_exists('block')) {
+        cache_clear_all('*', 'cache_block', TRUE);
+      }
+
+      // Clear cache views.
       if (module_exists('views')) {
         cache_clear_all('*', 'cache_views', TRUE);
         cache_clear_all('*', 'cache_views_data', TRUE);
