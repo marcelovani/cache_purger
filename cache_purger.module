@@ -270,7 +270,7 @@ function cache_purger_purge($module, $delta) {
   drupal_exit();
 }
 
-/*
+/**
  * Implements hook_install();
  */
 function cache_purger_install() {
@@ -280,8 +280,8 @@ function cache_purger_install() {
     ->execute();
 }
 
-/*
- * Implements hook_update().
+/**
+ * Update module weight.
  */
 function cache_purger_update_7001() {
   db_update('system')
