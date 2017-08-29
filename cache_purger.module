@@ -71,7 +71,11 @@ function cache_purger_preprocess_block(&$variables) {
     }
 
     // Add blocks information to be used with the purge button.
-    $js = '_cp.push({module:"' . $module . '", delta:"' . $delta . '"});';
+    $js = '_cp.push({
+      module:"' . $module . '", 
+      delta:"' . $delta . '",
+      id:"' . $module . '-' . str_replace('_', '-', $delta) . '"
+    });';
     $variables['elements']['#attached']['js'][] = drupal_add_js($js,  array('type' => 'inline', 'scope' => 'footer'));
   }
 }
@@ -82,12 +86,21 @@ function cache_purger_preprocess_block(&$variables) {
 function cache_purger_page_alter(&$page) {
   if (user_access('purge blocks cache')) {
     // Create the _cp object in the header.
-    $js = 'var _cp = _cp || []; var _cp_d = ' . variable_get('cache_purger_debug_mode', 0) . ';';
+    $js = 'var _cp = _cp || [];';
 
     // Add necessary js and css.
     drupal_add_js($js,  array('type' => 'inline', 'scope' => 'header'));
     drupal_add_js(drupal_get_path('module', 'cache_purger') . '/js/cache_purger.js');
     drupal_add_css(drupal_get_path('module', 'cache_purger') . '/cache_purger.css');
+
+    // Settings.
+    $settings = array(
+      'debug' => variable_get('cache_purger_debug_mode', 0),
+    );
+    drupal_add_js(
+      array('cachePurger' => $settings),
+      array('type' => 'setting', 'scope' => JS_DEFAULT)
+    );
   }
 }
 
@@ -270,7 +283,7 @@ function cache_purger_purge($module, $delta) {
   drupal_exit();
 }
 
-/**
+/*
  * Implements hook_install();
  */
 function cache_purger_install() {
@@ -280,8 +293,8 @@ function cache_purger_install() {
     ->execute();
 }
 
-/**
- * Update module weight.
+/*
+ * Implements hook_update().
  */
 function cache_purger_update_7001() {
   db_update('system')

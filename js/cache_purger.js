@@ -1,54 +1,49 @@
 (function ($) {
-Drupal.behaviors.blockPurge = {
-  attach: function (context) {
-  jQuery.each(_cp, function (i, item) {
-    var module = item.module;
-    var delta = item.delta;
-    var block_id = module + '-' + delta;
-    var purge_btn = '<div class="cache-purge-btn" title="Purge Cache: ' + block_id +
-    				'" id="cache-purge-btn-' + block_id +
-    				'" onclick="cache_purge_block(\'' + module + '\', \'' + delta + '\', \'' + _cp_d + '\');"></div>';
-    var id = '#block-' + block_id;
-    var cl = '.block-' + block_id;
-    jQuery(id + ', ' + cl).append(purge_btn);
-   });
-  }
-};
+  Drupal.behaviors.cachePurger = {
+
+    attach: function (context, settings) {
+      jQuery.each(_cp, function (i, item) {
+        var module = item.module;
+        var delta = item.delta;
+        var block_id = item.id;
+        var id = '#block-' + block_id;
+        var cl = '.block-' + block_id;
+        jQuery(id + ', ' + cl).append(Drupal.behaviors.cachePurger.markup(module, block_id, delta));
+      });
+    },
+
+    markup: function(module, block_id, delta) {
+      return '<div class="cache-purge-btn" title="Purge Cache: ' + delta +
+        '" id="cache-purge-btn-' + delta +
+        '" onclick="Drupal.behaviors.cachePurger.purge(\'' + module + '\', \'' + block_id + '\', \'' + delta + '\');">' +
+        '</div>';
+    },
+
+    purge: function (module, block_id, delta) {
+      var purge_btn = document.getElementById('cache-purge-btn-' + delta);
+      var degrees = 0, speed = 0.5;
+      var spinner = setInterval(function () {
+        degrees += speed;
+        var style = [
+          '-webkit-transform:rotate(' + degrees + 'rad);',
+          '-moz-transform:rotate(' + degrees + 'rad);',
+          '-ms-transform:rotate(' + degrees + 'rad);',
+          '-o-transform:rotate(' + degrees + 'rad);'
+        ];
+        purge_btn.setAttribute("style", style.join());
+      }, 10);
+
+      jQuery.getJSON("/admin/config/development/cachepurger/block/" + module + "/" + delta, {}, function (data) {
+        clearInterval(spinner);
+        if (Drupal.settings.cachePurger.debug == 1) {
+          alert(data.result);
+        }
+        var id = '#block-' + block_id;
+        var cl = '.block-' + block_id;
+        jQuery(id + ', ' + cl).fadeOut('slow').fadeIn();
+        jQuery('#cache-purge-btn-' + delta).fadeOut('slow');
+      });
+    }
+  };
 
 })(jQuery);
-
-function cache_purge_block(module, delta, debug) {
-  var cssPrefix = false;
-  var block_id = module + '-' + delta;
-      
-  if (jQuery.browser.webkit) {
-    cssPrefix = "webkit";
-  }
-  if (jQuery.browser.safari) {
-    cssPrefix = "webkit";
-  }
-  if (jQuery.browser.mozilla) {
-    cssPrefix = "moz";
-  }
-  if (jQuery.browser.opera) {
-    cssPrefix = "o";
-  }
-  if (jQuery.browser.msie) {
-    cssPrefix = "ms";
-  }
-
-  if(cssPrefix != false) {
-    var purge_btn = document.getElementById('cache-purge-btn-' + block_id), degrees = 0, speed = 5;
-    var spinner = setInterval(function() {
-      degrees += speed;
-      purge_btn.setAttribute("style","-" + cssPrefix + "-transform:rotate(" + degrees + "deg)");
-    },5);
-  }
-  jQuery.getJSON("/admin/config/development/cachepurger/block/" + module + "/" + delta, {}, function(data) {
-    clearInterval(spinner);
-    if (debug != 0) {
-      alert(data.result);
-    }
-    jQuery('#cache-purge-btn-' + block_id).fadeOut('slow');
-  });
-}
