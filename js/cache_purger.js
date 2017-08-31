@@ -1,6 +1,7 @@
 (function ($) {
-  Drupal.behaviors.cachePurger = {
+	"use strict";
 
+	Drupal.behaviors.cachePurger = {
     attach: function (context, settings) {
       jQuery.each(_cp, function (i, item) {
         var module = item.module;
@@ -8,7 +9,9 @@
         var block_id = item.id;
         var id = '#block-' + block_id;
         var cl = '.block-' + block_id;
-        jQuery(id + ', ' + cl).append(Drupal.behaviors.cachePurger.markup(module, block_id, delta));
+        jQuery(id + ', ' + cl).once('cache-purger', function () {
+	        $(this).append(Drupal.behaviors.cachePurger.markup(module, block_id, delta));
+        });
       });
     },
 
